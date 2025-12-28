@@ -1,9 +1,9 @@
-name: sessions
+name: O Count Statistics
 description: Adds an O-Count based statistics dashboard
-version: 0.1
+version: 0.2
 ui:
   requires:
     - CommunityScriptsUILibrary
   javascript:
     - chart.js
-    - sessions.js
+    - o_count_stats.js
