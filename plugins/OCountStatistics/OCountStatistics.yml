@@ -1,6 +1,6 @@
 name: O-Count Statistics
-description: Adds an O-Count based statistics dashboard
-version: 1.0
+description: A plugin for providing locally computed, statistical insights and visualizations instance
+version: "1.0.0"
 settings:
   enable_ocountByTagsChart:
     displayName: Enable O-Count by Tags Chart
@@ -43,4 +43,4 @@ ui:
     - CommunityScriptsUILibrary
   javascript:
     - chart.js
-    - o_count_stats.js
+    - OCountStatistics.js
