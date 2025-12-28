@@ -1,0 +1,19 @@
+- id: OCountStatistics
+  name: O-Count Statistics
+  version: "1.0.0"
+  date: 2025-12-28 19:51:47
+  path: bin/OCountStatistics.zip
+  sha256: fb7f9f9bfc0c0f258cb5dcc9b5e6186da90861f0dce072851e5a0b2ab9ce7aa3
+  metadata:
+    description: A plugin for providing locally computed, statistical insights and visualizations
+      instance
+  requires:
+    - CommunityScriptsUILibrary
+- id: CommunityScriptsUILibrary
+  name: CommunityScriptsUILibrary
+  version: "1.0.0"
+  date: 2025-12-28 19:51:48
+  path: bin/CommunityScriptsUILibrary.zip
+  sha256: afe87dabc21efaa10afd939ca74ca0316ced2096dfff03b6a0b422668a2f5215
+  metadata:
+    description: CommunityScripts UI helper library
