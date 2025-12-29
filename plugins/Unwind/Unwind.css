@@ -1,0 +1,185 @@
+.timeline {
+    list-style: none;
+    padding: 20px 0 20px;
+    position: relative;
+}
+.timeline:before {
+    top: 0;
+    bottom: 0;
+    position: absolute;
+    content: " ";
+    width: 3px;
+    background-color: #333;
+    left: 20px;
+    margin-left: -1.5px;
+}
+.timeline > li {
+    margin-bottom: 20px;
+    position: relative;
+    padding-left: 55px;
+}
+.timeline > li:before,
+.timeline > li:after {
+    content: " ";
+    display: table;
+}
+.timeline > li:after {
+    clear: both;
+}
+.timeline > li > .timeline-panel {
+    width: 100%;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #2e2e2e;
+    position: relative;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+}
+.timeline > li > .timeline-badge {
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 1.2em;
+    text-align: center;
+    position: absolute;
+    top: 16px;
+    left: 0;
+    background-color: #7a7a7a;
+    z-index: 100;
+    border-radius: 50%;
+}
+.timeline-title {
+    margin-top: 0;
+    color: #ccc;
+}
+.timeline-body > p,
+.timeline-body > ul {
+    margin-bottom: 0;
+    color: #aaa;
+}
+.timeline-body > p + p {
+    margin-top: 5px;
+}
+.unwind-plugin-container .unwind-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.unwind-plugin-container h2 {
+    margin: 0;
+}
+.unwind-plugin-container .year-selector-container {
+    display: flex;
+    align-items: center;
+}
+.unwind-plugin-container .year-selector-container label {
+    margin-right: 10px;
+}
+hr {
+    border-top: 1px solid #333;
+}
+
+/* Styles for General Stats Boxes */
+.stat-box-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px; /* Spacing between boxes */
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    flex: 1 1 calc(33% - 10px); /* Adjusts to 3 boxes per row on wider screens, with some gap */
+    min-width: 250px; /* Minimum width before wrapping */
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease-in-out;
+}
+
+.stat-box:hover {
+    transform: translateY(-5px);
+}
+
+.stat-box-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    align-content: center;
+}
+
+.stat-box-title {
+    font-size: 2vw;
+    opacity: 0.7;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+    margin: auto;
+    text-align: center;
+}
+
+.stat-box-subtitle {
+    font-size: 2vw;
+    opacity: 0.7;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+    margin: auto;
+    text-align: center;
+}
+
+.stat-box-value-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.stat-box-symbol {
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+    margin: auto;
+    margin-right: 0px;
+    width: 10%;
+    text-align: center;
+}
+
+.stat-box-value {
+    font-size: 8vw;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+    margin: auto;
+    margin-left: 0px;
+    text-align: center;
+}
+
+/* Fallback for when no image is available */
+.stat-box.no-image {
+    background-color: #3e3e3e; /* A dark grey fallback */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-box.no-image .stat-box-overlay {
+    background: none;
+    position: relative;
+    padding: 0;
+    align-content: center;
+}
+
+.stat-box.no-image .stat-box-title,
+.stat-box.no-image .stat-box-value {
+    opacity: 1;
+}
