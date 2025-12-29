@@ -319,6 +319,12 @@
 
   function calculateSessionDurations(stats, allScenes, year) {
     stats.sessions = [];
+    // Create a map of scene ID to screenshot path for quick lookup
+    const sceneScreenshotMap = new Map();
+    allScenes.forEach((s) => {
+      sceneScreenshotMap.set(s.id, s.paths?.screenshot || null);
+    });
+
     allScenes.forEach((scene) => {
       if (scene.play_history && scene.o_history) {
         const scenePlaysInYear = scene.play_history.filter(
@@ -342,7 +348,15 @@
                 new Date(c) > new Date(l) ? c : l,
               );
               const duration = (new Date(latestO) - playTime) / 1000;
-              stats.sessions.push({ sceneTitle: scene.title, duration });
+              if (duration > 0) {
+                // Filter out sessions with 0 duration
+                stats.sessions.push({
+                  sceneId: scene.id, // Store scene ID
+                  sceneTitle: scene.title,
+                  duration,
+                  image_path: sceneScreenshotMap.get(scene.id), // Add image path
+                });
+              }
             }
           });
         }
@@ -670,18 +684,71 @@
     longestSessions,
     shortestSessions,
   }) {
-    if (!sessions || sessions.length < 5) return "";
+    if (!sessions || sessions.length < 5) {
+      return "";
+    }
+
+    const maxDuration = Math.max(...sessions.map((s) => s.duration));
+    const NINE_MINUTES_IN_SECONDS = 9 * 60; // 9 minutes to give some space to the 8 min marker, should the sessions all be short
+    const timelineMaxDuration = Math.max(NINE_MINUTES_IN_SECONDS, maxDuration);
+
+    const MAX_LINE_PERCENTAGE = 90;
+
+    const renderSessionItem = (session) => {
+      // Ensure timelineMaxDuration is not 0 to avoid division by zero
+      const normalizedDuration =
+        timelineMaxDuration > 0 ? session.duration / timelineMaxDuration : 0;
+      const lineWidth = normalizedDuration * MAX_LINE_PERCENTAGE; // Line width in percentage
+
+      const fiveMinMarkerPosition =
+        timelineMaxDuration > 0
+          ? (300 / timelineMaxDuration) * MAX_LINE_PERCENTAGE
+          : 0;
+      const eightMinMarkerPosition =
+        timelineMaxDuration > 0
+          ? (480 / timelineMaxDuration) * MAX_LINE_PERCENTAGE
+          : 0;
+
+      const backgroundStyle = session.image_path
+        ? `background-image: url('${session.image_path}');`
+        : "";
+
+      return `
+        <div class="session-item">
+          <div class="session-image" style="${backgroundStyle}"></div>
+          <div class="session-details">
+            <div class="session-title">${session.sceneTitle}</div>
+            <div class="session-timeline-wrapper">
+              <div class="session-timeline-container">
+                <div class="session-duration-line" style="width: ${lineWidth}%;"></div>
+                ${fiveMinMarkerPosition > 0 && fiveMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-5min" style="left: ${fiveMinMarkerPosition}%;"></div>` : ""}
+                ${eightMinMarkerPosition > 0 && eightMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-8min" style="left: ${eightMinMarkerPosition}%;"></div>` : ""}
+              </div>
+              <span class="session-duration-text">${Math.round(session.duration)}s</span>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
     return `
       <div class="col-md-12">
         <h3>Session Durations</h3>
-        <div class="row">
-            <div class="col-md-6">
-                <h4>5 Longest Sessions</h4>
-                <ol>${longestSessions.map((s) => `<li>${s.sceneTitle} (${Math.round(s.duration)}s)</li>`).join("")}</ol>
+        <div class="session-lists-container">
+            <div class="session-list-section">
+                <div class="session-list">
+                    ${longestSessions.map(renderSessionItem).join("")}
+                </div>
             </div>
-            <div class="col-md-6">
-                <h4>5 Shortest Sessions</h4>
-                <ol>${shortestSessions.map((s) => `<li>${s.sceneTitle} (${Math.round(s.duration)}s)</li>`).join("")}</ol>
+            <div class="session-ellipsis-separator-horizontal">
+              <hr>
+              <div>&#8943;</div>
+              <hr>
+            </div>
+            <div class="session-list-section">
+                <div class="session-list">
+                    ${shortestSessions.map(renderSessionItem).join("")}
+                </div>
             </div>
         </div>
       </div>`;
@@ -719,7 +786,9 @@
   }
 
   function renderTimeline(stats) {
-    if (stats.totalOCounts === 0) return "";
+    if (stats.totalOCounts === 0) {
+      return "";
+    }
 
     const monthLabels = [
       "January",

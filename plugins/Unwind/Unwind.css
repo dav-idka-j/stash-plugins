@@ -261,6 +261,16 @@ hr {
     left: 75%;
 }
 
+/* TODO: Remove */
+/* Color classes for symbols */
+.text-green-500 {
+    color: #28a745; /* Bootstrap's success green or similar */
+}
+
+.text-red-500 {
+    color: #dc3545; /* Bootstrap's danger red or similar */
+}
+
 .peak-day-screenshot-grid {
     display: flex;
     flex-wrap: wrap;
@@ -273,6 +283,7 @@ hr {
     aspect-ratio: 16 / 9;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -370,4 +381,133 @@ hr {
 
 .streak-timeline-segment.streak-red {
     background-color: #dc3545;
+}
+
+/* Styles for Session Durations */
+.session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.session-item {
+    display: flex;
+    align-items: center;
+    background-color: #2e2e2e;
+    border-radius: 8px;
+    padding: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.session-image {
+    width: 80px;
+    height: 45px; /* Maintain 16:9 aspect ratio approximately */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 4px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.session-details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.session-title {
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-timeline-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
+.session-timeline-container {
+    height: 8px;
+    border-radius: 4px;
+    position: relative;
+    width: 95%;
+}
+
+.session-duration-line {
+    height: 100%;
+    background-color: #fff;
+    border-radius: 4px;
+    position: relative;
+}
+
+.session-marker {
+    position: absolute;
+    top: -4px; /* Adjust to be visible above/below the line */
+    height: 16px;
+    width: 2px;
+    background-color: currentColor; /* Will use the color from marker-5min/15min */
+    transform: translateX(-50%); /* Center marker on its position */
+    border-radius: 1px;
+}
+
+.session-marker-5min {
+    background-color: #007bff;
+}
+
+.session-marker-8min {
+    background-color: #e83e8c;
+}
+
+.session-duration-text {
+    font-size: 0.8em;
+    color: #aaa;
+    white-space: nowrap;
+}
+
+.session-ellipsis-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    font-size: 2em;
+    color: #888;
+    height: auto;
+    flex-direction: column;
+}
+
+/* Styles for Session Durations - Stacked Layout */
+.session-lists-container {
+    display: flex;
+    flex-direction: column; /* Stack lists vertically */
+    align-items: center; /* Center content horizontally */
+}
+
+.session-list-section {
+    width: 80%;
+    max-width: 80%;
+    text-align: left;
+}
+
+.session-ellipsis-separator-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+    margin: 20px 0;
+    color: #888;
+    font-size: 2em;
+}
+
+.session-ellipsis-separator-horizontal hr {
+    flex-grow: 1; /* Make hr take available space */
+    border: none;
+    border-top: 1px solid #555;
+    margin: 0 10px;
 }
