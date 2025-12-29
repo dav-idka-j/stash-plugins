@@ -100,7 +100,7 @@
   const PLUGIN_SETTINGS_QUERY = `
     query GetOCountStatsConfiguration {
       configuration {
-        plugins(include: "o_count_stats")
+        plugins(include: "OCountStatistics")
       }
     }
   `;
@@ -472,9 +472,9 @@
     console.log("PluginData: ", pluginData);
 
     let pluginSettings = {};
-    if (pluginData?.configuration?.plugins?.o_count_stats) {
+    if (pluginData?.configuration?.plugins?.OCountStatistics) {
       try {
-        pluginSettings = pluginData.configuration.plugins.o_count_stats;
+        pluginSettings = pluginData.configuration.plugins.OCountStatistics;
         console.log("Plugin settings fetched:", pluginSettings);
       } catch (e) {
         console.error("Failed to parse plugin settings:", e);
