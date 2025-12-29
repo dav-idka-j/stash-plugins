@@ -50,6 +50,17 @@
     }
   `;
 
+  const PERFORMERS_IMAGES_QUERY = `
+    query PerformersImages($performer_ids: [ID!]) {
+      findPerformers(ids: $performer_ids) {
+        performers {
+          id
+          image_path
+        }
+      }
+    }
+  `;
+
   // =================
   // Data Calculation
   // =================
@@ -127,19 +138,46 @@
     }
   }
 
-  function calculateTopPerformers(stats, oCountEvents) {
+  async function calculateTopPerformers(stats, oCountEvents) {
     const performerCounts = oCountEvents.reduce((acc, curr) => {
       if (curr.item.performers) {
         curr.item.performers.forEach((p) => {
-          acc[p.name] = (acc[p.name] || 0) + 1;
+          if (!acc[p.id]) {
+            acc[p.id] = { name: p.name, count: 0, id: p.id };
+          }
+          acc[p.id].count++;
         });
       }
       return acc;
     }, {});
 
-    stats.topPerformers = Object.entries(performerCounts)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 10);
+    const top5PerformersRaw = Object.values(performerCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Extract IDs for the GraphQL query
+    const performerIds = top5PerformersRaw.map((p) => p.id);
+
+    // Fetch performer image paths
+    let performerImagesMap = {};
+    if (performerIds.length > 0) {
+      const imageData = await performGraphQLQuery(PERFORMERS_IMAGES_QUERY, {
+        performer_ids: performerIds,
+      });
+      if (imageData?.findPerformers?.performers) {
+        imageData.findPerformers.performers.forEach((p) => {
+          performerImagesMap[p.id] = p.image_path;
+        });
+      }
+    }
+
+    // Combine performer data with image paths
+    stats.topPerformers = top5PerformersRaw.map((p) => ({
+      id: p.id,
+      name: p.name,
+      count: p.count,
+      image_path: performerImagesMap[p.id] || null, // Attach image path
+    }));
   }
 
   function calculateDeepDive(stats, oCountEvents, year) {
@@ -284,6 +322,10 @@
   // =================
   // UI Rendering
   // =================
+
+  const O_COUNT_PATH =
+    "M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z";
+
   function renderGeneralStats({
     newScenes,
     newScenesImage,
@@ -302,8 +344,6 @@
     const TRIANGLE_UP = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="M18 6L4.5 30H 31.5L 18 6Z" fill="${GREEN_FILL}"></path></svg>`;
     const TRIANGLE_DOWN = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="M18 30L 31.5 6H 4.5L 18 30Z" fill="${RED_FILL}"></path></svg>`;
 
-    const O_COUNT_PATH =
-      "M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z";
     const O_COUNT_SYMBOL_UP = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="${GREEN_FILL}"></path></svg>`;
     const O_COUNT_SYMBOL_DOWN = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="${RED_FILL}"></path></svg>`;
 
@@ -365,12 +405,57 @@
       </div>`;
   }
 
+  const CROWN_PATH =
+    "M 10.125 2.3906 c 0 0.3883 -0.3148 0.7031 -0.7031 0.7031 c -0.0044 0 -0.008 -0.0022 -0.0124 -0.0023 l -0.888 4.885 C 8.4727 8.2424 8.2406 8.4375 7.9682 8.4375 H 2.1568 c -0.2718 0 -0.5048 -0.1944 -0.5534 -0.4618 L 0.7156 3.092 C 0.7112 3.092 0.7075 3.0938 0.6873 3.0938 c -0.3883 0 -0.7031 -0.3148 -0.7031 -0.7031 S 0.3148 1.6875 0.6873 1.6875 s 0.7031 0.3148 0.7031 0.7031 c 0 0.1582 -0.0619 0.2969 -0.1501 0.4143 l 1.5755 1.2604 c 0.2797 0.2238 0.6943 0.1326 0.8545 -0.1877 l 1.0125 -2.025 C 4.4842 1.7286 4.3436 1.5177 4.3436 1.2656 C 4.3436 0.8773 4.674 0.5625 5.0625 0.5625 s 0.6873 0.3148 0.6873 0.7031 c 0 0.2521 -0.14 0.463 -0.3393 0.5871 l 1.0125 2.025 c 0.1602 0.3203 0.575 0.4113 0.8545 0.1877 l 1.5755 -1.2604 C 8.7803 2.6877 8.7188 2.533 8.7188 2.3906 C 8.7188 2.0021 9.0334 1.6875 9.4219 1.6875 S 10.125 2.0021 10.125 2.3906 Z";
+  const VIEWBOX_SIZES = "0 0 10 12";
+  function addCrown(rank) {
+    if (rank === 0) {
+      return `<svg class="crown" xmlns="http://www.w3.org/2000/svg" viewBox="${VIEWBOX_SIZES}"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="${CROWN_PATH}" fill="#ffd700"/></svg>`;
+    } else if (rank === 1) {
+      return `<svg class="crown" xmlns="http://www.w3.org/2000/svg" viewBox="${VIEWBOX_SIZES}"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="${CROWN_PATH}" fill="#c0c0c0"/></svg>`;
+    } else if (rank === 2) {
+      return `<svg class="crown" xmlns="http://www.w3.org/2000/svg" viewBox="${VIEWBOX_SIZES}"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="${CROWN_PATH}" fill="#cd7f32"/></svg>`;
+    } else {
+      return "";
+    }
+  }
+
   function renderTopPerformers({ topPerformers }) {
-    if (!topPerformers || topPerformers.length === 0) return "";
+    if (!topPerformers || topPerformers.length === 0) {
+      return "";
+    }
+    const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
+
     return `
-      <div class="col-md-6">
+      <div class="col-md-12">
         <h3>Top Performers by O-Count</h3>
-        <ol>${topPerformers.map(([name, count]) => `<li>${name} (${count})</li>`).join("")}</ol>
+        <div class="performer-box-container">
+          ${topPerformers
+            .map((performer, index) => {
+              const backgroundStyle = performer.image_path
+                ? `background-image: url('${performer.image_path}');`
+                : "";
+              // Scale based on rank (index). Rank 0 is largest.
+              const scaleFactor = 1 - index * 0.1; // Reduce size by 10% per rank
+              const height = 250 * scaleFactor;
+              const width = 250 * scaleFactor;
+
+              return `
+              <div class="performer-box" style="${backgroundStyle}; height: ${height}px; width: ${width}px;">
+                <div class="performer-box-overlay">
+                  <div class="performer-box-name">${performer.name}</div>
+                  <div class="performer-box-count-overlay">
+                    <div class="performer-box-count-container">
+                      <div class="performer-box-count">${performer.count}</div>
+                      ${O_COUNT_SYMBOL}
+                    </div>
+                    ${addCrown(index)}
+                  </div>
+                </div>
+              </div>`;
+            })
+            .join("")}
+        </div>
       </div>`;
   }
 
@@ -626,7 +711,7 @@
 
       const stats = {};
       calculateGeneralStats(stats, oCountEvents, allScenes, allImages, year);
-      calculateTopPerformers(stats, oCountEvents);
+      await calculateTopPerformers(stats, oCountEvents);
       calculateDeepDive(stats, oCountEvents, year);
       calculateSessionDurations(stats, allScenes, year);
       calculateTagStats(stats, oCountEvents);

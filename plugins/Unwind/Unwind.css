@@ -183,3 +183,83 @@ hr {
 .stat-box.no-image .stat-box-value {
     opacity: 1;
 }
+
+.performer-box-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.performer-box {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition:
+        transform 0.2s ease-in-out,
+        all 0.3s ease; /* Added all for scaling transition */
+    min-width: 100px; /* Minimum size for smaller boxes */
+    min-height: 100px; /* Minimum size for smaller boxes */
+}
+
+.performer-box:hover {
+    transform: translateY(-5px);
+}
+
+.performer-box-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    text-align: center;
+}
+
+.performer-box-count-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+}
+
+.performer-box-name {
+    font-size: 1.1em;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.performer-box-count-overlay {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+.performer-box-count {
+    font-size: 1.5em;
+    line-height: 1;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.crown {
+    position: absolute;
+    scale: 0.5;
+    left: 75%;
+}
