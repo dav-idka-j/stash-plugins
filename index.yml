@@ -1,14 +1,24 @@
 - id: OCountStatistics
   name: O-Count Statistics
-  version: "1.0.0"
-  date: 2025-12-28 19:51:47
+  version: "1.0.2"
+  date: 2025-12-29 08:08:12
   path: bin/OCountStatistics.zip
-  sha256: fb7f9f9bfc0c0f258cb5dcc9b5e6186da90861f0dce072851e5a0b2ab9ce7aa3
+  sha256: 3dfc0c3c9f46f727187b1305751aabbfa0f516072ad8ec5c199854774a77c7a3
   metadata:
-    description: A plugin for providing locally computed, statistical insights and visualizations
+    description:
+      A plugin for providing locally computed, statistical insights and visualizations
       instance
   requires:
+    - StashGraphs
     - CommunityScriptsUILibrary
+- id: StashGraphs
+  name: StashGraphs
+  version: "1.0.0"
+  date: 2025-12-29 08:10:05
+  path: bin/StashGraphs.zip
+  sha256: f1669c8dd14fd9fa85d2fa860f3b38bfd32dd94af14caf4f25be24a65d0c2b01
+  metadata:
+    description: Charting UI helper library
 - id: CommunityScriptsUILibrary
   name: CommunityScriptsUILibrary
   version: "1.0.0"

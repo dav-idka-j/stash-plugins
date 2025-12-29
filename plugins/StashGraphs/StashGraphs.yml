@@ -1,0 +1,7 @@
+name: "StashGraphs"
+description: "Provides charting functionality for other plugins."
+version: "1.0.0"
+ui:
+  javascript:
+    - "chart.js"
+    - "StashGraphs.js"
