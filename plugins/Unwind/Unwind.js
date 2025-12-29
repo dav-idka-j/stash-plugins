@@ -436,6 +436,20 @@
     });
   }
 
+  function formatDuration(seconds) {
+    if (seconds < 60) {
+      return `${Math.round(seconds)}s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    if (minutes < 60) {
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m ${remainingSeconds}s`;
+  }
+
   const O_COUNT_PATH =
     "M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z";
 
@@ -742,7 +756,7 @@ day ways ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4
                 ${fiveMinMarkerPosition > 0 && fiveMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-5min" style="left: ${fiveMinMarkerPosition}%;"></div>` : ""}
                 ${eightMinMarkerPosition > 0 && eightMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-8min" style="left: ${eightMinMarkerPosition}%;"></div>` : ""}
               </div>
-              <span class="session-duration-text">${Math.round(session.duration)}s</span>
+              <span class="session-duration-text">${formatDuration(session.duration)}</span>
             </div>
           </div>
         </div>
