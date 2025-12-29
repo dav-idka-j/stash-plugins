@@ -380,8 +380,19 @@
       return acc;
     }, {});
     stats.topTags = Object.entries(tagCounts)
-      .sort(([, a], [, b]) => b.count - a.count)
-      .slice(0, 8);
+      .sort((tagA, tagB) => {
+        const countA = tagA[1].count;
+        const countB = tagB[1].count;
+
+        return countB - countA;
+      })
+      .slice(0, 8)
+      .sort((tagA, tagB) => {
+        // Sort by name afterwards to make the graph look more interesting
+        const nameA = tagA[0];
+        const nameB = tagB[0];
+        return nameA.localeCompare(nameB);
+      });
     stats.top3Tags = stats.topTags.slice(0, 3);
   }
 
@@ -762,13 +773,13 @@
         <div class="col-md-12">
             <h3>Tag Statistics</h3>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6" style="text-align: center;">
                     <h4>Top 8 Tags by O-Count</h4>
-                    <div style="position: relative; height:400px;"><canvas id="tag-radar-chart"></canvas></div>
+                    <div style="position: relative; height:400px; max-width: 400px; margin: 0 auto;"><canvas id="tag-radar-chart"></canvas></div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6" style="text-align: center;">
                     <h4>Top 3 Tags Monthly Breakdown</h4>
-                    ${top3Tags.map((_, i) => `<div style="position: relative; height:130px;"><canvas id="tag-breakdown-chart-${i}"></canvas></div>`).join("")}
+                    ${top3Tags.map((_, i) => `<div style="position: relative; height:130px; max-width: 300px; margin: 0 auto;"><canvas id="tag-breakdown-chart-${i}"></canvas></div>`).join("")}
                 </div>
             </div>
         </div>
