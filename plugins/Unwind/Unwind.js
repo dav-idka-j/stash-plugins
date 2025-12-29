@@ -789,9 +789,9 @@
   function renderPlayCountStats({ topPlayTags }) {
     if (!topPlayTags || topPlayTags.length < 1) return "";
     return `
-        <div class="col-md-12">
+        <div class="col-md-12" style="text-align: center;">
             <h3>Play Count by Tag</h3>
-            <div style="position: relative; height:400px;"><canvas id="play-count-by-tag-chart"></canvas></div>
+            <div style="position: relative; height:400px; max-width: 600px; margin: 0 auto;"><canvas id="play-count-by-tag-chart"></canvas></div>
         </div>
     `;
   }
