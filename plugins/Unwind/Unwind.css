@@ -1,8 +1,8 @@
 a.unwind-clickable,
 a.unwind-clickable:hover {
-  text-decoration: none;
-  color: inherit;
-  display: block;
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }
 
 .unwind-text-shadow {
@@ -28,9 +28,8 @@ a.unwind-clickable:hover {
 }
 
 .section-subtitle {
-    font-size: 3vw;
+    font-size: 2vw;
     text-align: center;
-    font-weight: bold;
 }
 
 .timeline {
@@ -284,6 +283,7 @@ hr {
 .performer-box-count {
     font-size: 1.5em;
     line-height: 1;
+    padding-left: 10px;
 }
 
 .crown {

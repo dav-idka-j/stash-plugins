@@ -45,7 +45,7 @@
             scenes { __typename id title created_at o_history play_history performers { id name } tags { id name } paths { screenshot } }
         }
         findImages(filter: {per_page: -1}, image_filter: $image_filter) {
-            images { __typename id id title created_at o_counter paths { thumbnail } }
+            images { __typename id title created_at o_counter paths { thumbnail } }
         }
     }
   `;
@@ -178,6 +178,37 @@
       count: p.count,
       image_path: performerImagesMap[p.id] || null, // Attach image path
     }));
+  }
+
+  async function calculateTopMedia(stats, oCountEvents, playEvents) {
+    const mediaStats = {};
+
+    // Aggregate O-counts for all media (scenes and images)
+    oCountEvents.forEach((event) => {
+      const item = event.item;
+      if (!mediaStats[item.id]) {
+        mediaStats[item.id] = {
+          id: item.id,
+          title: item.title,
+          __typename: item.__typename,
+          image_path: item.paths?.screenshot || item.paths?.thumbnail,
+          o_count: 0,
+          play_count: 0,
+        };
+      }
+      mediaStats[item.id].o_count++;
+    });
+
+    playEvents.forEach((event) => {
+      const item = event.item;
+      if (mediaStats[item.id]) {
+        mediaStats[item.id].play_count++;
+      }
+    });
+
+    stats.topMedia = Object.values(mediaStats)
+      .sort((a, b) => b.o_count - a.o_count)
+      .slice(0, 5);
   }
 
   function calculateDeepDive(stats, oCountEvents, year) {
@@ -453,6 +484,8 @@
   const O_COUNT_PATH =
     "M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z";
 
+  const PLAY_ICON_PATH = "M8,5.14V19.14L19,12.14L8,5.14Z";
+
   function renderGeneralStats({
     newScenes,
     newScenesImage,
@@ -522,12 +555,11 @@
 
     return `
       <div class="col-md-12">
-        <h3 class="section-title">Highlights</h3>
+        <h3 class="section-title">Here are a few of your highlights...</h3>
         <div class="stat-box-container">
           ${renderStatBox("Scenes", "Added", newScenes, newScenesImage, "No New Scenes", "scenes")}
+          ${renderStatBox("Big Os", "Achieved", totalOCounts, totalOCountsImage, "No O-Counts", "ocounts")}
           ${renderStatBox("Images", "Added", newImages, newImagesImage, "No New Images", "images")}
-          ${renderStatBox("O-Count Increases", "Achieved", totalOCounts, totalOCountsImage, "No O-Counts", "ocounts")}
-          ${renderStatBox("Most O-Count Increases Caused By", topOScene.title, topOScene.count, topOScene.image, "No Top O-Count Scene", "ocounts")}
         </div>
       </div>`;
   }
@@ -556,6 +588,7 @@
     return `
       <div class="col-md-12">
         <h3 class="section-title">Top Performers by O-Count</h3>
+        <h4 class="section-subtitle">These talents elevated your experiences this year...</h4>
         <div class="performer-box-container">
           ${topPerformers
             .map((performer, index) => {
@@ -584,8 +617,64 @@
               </a>`;
             })
             .join("")}
-        </div>
-      </div>`;
+                  </div>
+              </div>`;
+  }
+
+  function renderTopMedia({ topMedia }) {
+    if (!topMedia || topMedia.length === 0) {
+      return "";
+    }
+    const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
+    const PLAY_SYMBOL = `<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${PLAY_ICON_PATH}" fill="#F5F8FA"></path></svg>`;
+
+    return `
+              <div class="col-md-12">
+                <h3 class="section-title">Top Media by O-Count</h3>
+                <h4 class="section-subtitle">These scenes delivered unforgettable thrills...</h4>
+                <div class="performer-box-container">
+                  ${topMedia
+                    .map((media, index) => {
+                      const backgroundStyle = media.image_path
+                        ? `background-image: url('${media.image_path}');`
+                        : "";
+                      const scaleFactor = 1 - index * 0.1;
+                      const height = 250 * scaleFactor;
+                      const width = 250 * scaleFactor;
+                      const itemUrl =
+                        media.__typename === "Scene"
+                          ? `/scenes/${media.id}`
+                          : `/images/${media.id}`;
+
+                      return `
+                      <a href="${itemUrl}" class="unwind-clickable">
+                        <div class="performer-box unwind-box-shadow unwind-hover-lift" style="${backgroundStyle}; height: ${height}px; width: ${width}px;">
+                          <div class="performer-box-overlay">
+                            <div class="performer-box-name unwind-text-shadow">${media.title}</div>
+                            <div class="performer-box-count-overlay">
+                              <div class="performer-box-count-container">
+                                <div class="performer-box-count unwind-text-shadow">${media.o_count}</div>
+                                ${O_COUNT_SYMBOL}
+                              </div>
+                              ${
+                                media.play_count > 0
+                                  ? `
+                              <div class="performer-box-count-container">
+                                <div class="performer-box-count unwind-text-shadow">${media.play_count}</div>
+                                ${PLAY_SYMBOL}
+                              </div>
+                              `
+                                  : ""
+                              }
+                              ${addCrown(index)}
+                            </div>
+                          </div>
+                        </div>
+                      </a>`;
+                    })
+                    .join("")}
+                </div>
+              </div>`;
   }
 
   function renderDeepDive(
@@ -681,7 +770,9 @@
       title,
       colorClass,
     ) => {
-      if (duration === 0) return "";
+      if (duration === 0) {
+        return "";
+      }
       const numSegments = Math.min(duration, 50); // Max 50 segments for visual clarity
       let segmentsHtml = "";
       for (let i = 0; i < numSegments; i++) {
@@ -690,7 +781,7 @@
 
       return `
         <div class="streak-timeline-wrapper">
-          <p class="streak-timeline-title">${title}: ${duration} days</p>
+          <p class="streak-timeline-title">${title} (${duration} days)</p>
           <div class="streak-timeline-container">
             <span class="streak-timeline-date">${formatDate(startDate)}</span>
             ${segmentsHtml}
@@ -704,8 +795,7 @@
       <div class="col-md-12">
         <h3 class="section-title">O-Count Peak</h3>
         <div class="deep-dive-section">
-          <h4 class="section-subtitle">Your busiest
-day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
+          <h4 class="section-subtitle">${formatDate(peakDay.date)} was the highlight of the year for joy with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
           <div class="peak-day-content" style="text-align: center;">
             ${renderScreenshotGrid(peakDay.items)}
           </div>
@@ -717,9 +807,10 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
         </div>
         <hr>
         <div class="row">
+            <h3 class="section-title">Anticipation and Release</h3>
             <div class="col-md-12">
-                ${renderStreakTimeline(longestStreak, longestStreakStart, longestStreakEnd, "Longest O-Count Streak", "streak-green")}
-                ${renderStreakTimeline(longestDrySpell, longestDrySpellStart, longestDrySpellEnd, "Longest Dry Spell", "streak-red")}
+                ${renderStreakTimeline(longestStreak, longestStreakStart, longestStreakEnd, "This streak ignited excitement day after day", "streak-green")}
+                ${renderStreakTimeline(longestDrySpell, longestDrySpellStart, longestDrySpellEnd, "This dry spell offered a moment of reflection", "streak-red")}
             </div>
         </div>
       </div>`;
@@ -781,7 +872,7 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
 
     return `
       <div class="col-md-12">
-        <h3 class="section-title">Session Durations</h3>
+        <h3 class="section-title">Longest Thrills and Shortest Encounters</h3>
         <div class="session-lists-container">
             <div class="session-list-section">
                 <div class="session-list">
@@ -808,14 +899,14 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
     }
     return `
         <div class="col-md-12">
-            <h3 class="section-title">Tag Statistics</h3>
+            <h3 class="section-title">Tag Trends</h3>
             <div class="row">
                 <div class="col-md-6" style="text-align: center;">
-                    <h4 class="section-subtitle">Top 8 Tags by O-Count</h4>
+                    <h4 class="section-subtitle">Eight Tags That Took Center Stage</h4>
                     <div style="position: relative; height:400px; max-width: 400px; margin: 0 auto;"><canvas id="tag-radar-chart"></canvas></div>
                 </div>
                 <div class="col-md-6" style="text-align: center;">
-                    <h4 class="section-subtitle">Top 3 Tags Monthly Breakdown</h4>
+                    <h4 class="section-subtitle">A Closer Look At The Top 3 Tags</h4>
                     ${top3Tags.map((_, i) => `<div style="position: relative; height:130px; max-width: 300px; margin: 0 auto;"><canvas id="tag-breakdown-chart-${i}"></canvas></div>`).join("")}
                 </div>
             </div>
@@ -827,7 +918,7 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
     if (!topPlayTags || topPlayTags.length < 1) return "";
     return `
         <div class="col-md-12" style="text-align: center;">
-            <h3 class="section-title">Play Count by Tag</h3>
+            <h3 class="section-title">The Tags That Captivated You This Year"</h3>
             <div style="position: relative; height:400px; max-width: 600px; margin: 0 auto;"><canvas id="play-count-by-tag-chart"></canvas></div>
         </div>
     `;
@@ -917,8 +1008,10 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
     `;
     };
 
-    let timelineHtml =
-      '<div class="col-md-12"><h3 class="section-title">O-Count Timeline</h3><ul class="timeline">';
+    let timelineHtml = `<div class="col-md-12">
+      <h3 class="section-title">A Journey Through the Months</h3>
+      <h4 class="section-subtitle">A Timeline of O-Count Events</h4>
+      <ul class="timeline">`;
 
     stats.timeline.forEach((monthEvents, i) => {
       if (monthEvents.length > 0) {
@@ -1086,6 +1179,7 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
       const stats = {};
       calculateGeneralStats(stats, oCountEvents, allScenes, allImages, year);
       await calculateTopPerformers(stats, oCountEvents);
+      await calculateTopMedia(stats, oCountEvents, playEvents);
       calculateDeepDive(stats, oCountEvents, year);
       calculateSessionDurations(stats, allScenes, year);
       calculateTagStats(stats, oCountEvents);
@@ -1095,6 +1189,7 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
       contentDiv.innerHTML = `
             <div class="row">${renderGeneralStats(stats)}</div>
             <div class="row">${renderTopPerformers(stats)}</div>
+            ${renderTopMedia(stats) ? `<div class="row">${renderTopMedia(stats)}</div>` : ""}
             <hr>${renderDeepDive(stats, oCountEvents) ? `<div class="row">${renderDeepDive(stats, oCountEvents)}</div><hr>` : ""}
             ${renderSessionDurations(stats) ? `<div class="row">${renderSessionDurations(stats)}</div><hr>` : ""}
             ${renderTagStats(stats) ? `<div class="row">${renderTagStats(stats)}</div><hr>` : ""}
