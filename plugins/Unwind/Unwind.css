@@ -524,3 +524,25 @@ hr {
     border-top: 1px solid #555;
     margin: 0 10px;
 }
+
+/* Styles for Efficiency Section */
+.efficiency-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.efficiency-ratio {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.efficiency-counts {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    font-size: 1em;
+    color: #ccc;
+}

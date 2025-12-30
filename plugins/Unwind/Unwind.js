@@ -211,6 +211,117 @@
       .slice(0, 5);
   }
 
+  async function calculateEfficiencyStats(stats, oCountEvents, playEvents) {
+    const efficiencyStats = {
+      scenes: {},
+      performers: {},
+      tags: {},
+    };
+
+    // Scene Efficiency
+    playEvents.forEach((event) => {
+      const scene = event.item;
+      if (!efficiencyStats.scenes[scene.id]) {
+        efficiencyStats.scenes[scene.id] = {
+          id: scene.id,
+          title: scene.title,
+          image_path: scene.paths?.screenshot,
+          o_count: 0,
+          play_count: 0,
+        };
+      }
+      efficiencyStats.scenes[scene.id].play_count++;
+    });
+
+    oCountEvents.forEach((event) => {
+      // Only scenes have play counts, so we only care about scenes for efficiency
+      if (event.item.__typename === "Scene") {
+        const scene = event.item;
+        if (efficiencyStats.scenes[scene.id]) {
+          efficiencyStats.scenes[scene.id].o_count++;
+        }
+      }
+    });
+
+    const sceneEfficiencies = Object.values(efficiencyStats.scenes).map((s) => {
+      const efficiency = s.play_count > 0 ? s.o_count / s.play_count : 0;
+      return { ...s, efficiency };
+    });
+
+    // Most efficient: higher is better. Must have at least one play.
+    stats.top5MostEfficientScenes = sceneEfficiencies
+      .filter((s) => s.play_count > 0)
+      .sort((a, b) => b.efficiency - a.efficiency)
+      .slice(0, 5);
+
+    // Least efficient: lower is better. Must have at least one play.
+    stats.top5LeastEfficientScenes = sceneEfficiencies
+      .filter((s) => s.play_count > 0)
+      .sort((a, b) => a.efficiency - b.efficiency)
+      .slice(0, 5);
+
+    // Performer & Tag Efficiency
+    const performerPlays = {};
+    const performerOs = {};
+    const tagPlays = {};
+    const tagOs = {};
+
+    playEvents.forEach((e) => {
+      const scene = e.item;
+      scene.performers.forEach((p) => {
+        performerPlays[p.id] = performerPlays[p.id] || {
+          name: p.name,
+          count: 0,
+        };
+        performerPlays[p.id].count++;
+      });
+      scene.tags.forEach((t) => {
+        tagPlays[t.id] = tagPlays[t.id] || { name: t.name, count: 0 };
+        tagPlays[t.id].count++;
+      });
+    });
+
+    oCountEvents.forEach((e) => {
+      const item = e.item;
+      if (item.__typename === "Scene") {
+        item.performers.forEach((p) => {
+          performerOs[p.id] = performerOs[p.id] || { name: p.name, count: 0 };
+          performerOs[p.id].count++;
+        });
+        item.tags.forEach((t) => {
+          tagOs[t.id] = tagOs[t.id] || { name: t.name, count: 0 };
+          tagOs[t.id].count++;
+        });
+      }
+    });
+
+    const calculateEntityEfficiency = (plays, os) => {
+      return Object.keys(plays).map((id) => {
+        const name = plays[id].name;
+        const playCount = plays[id].count;
+        const oCount = os[id]?.count || 0;
+        const efficiency = playCount > 0 ? oCount / playCount : 0;
+        return { id, name, playCount, oCount, efficiency };
+      });
+    };
+
+    const performerEfficiencies = calculateEntityEfficiency(
+      performerPlays,
+      performerOs,
+    );
+    const tagEfficiencies = calculateEntityEfficiency(tagPlays, tagOs);
+
+    stats.top5MostEfficientPerformers = performerEfficiencies
+      .filter((p) => p.playCount > 0)
+      .sort((a, b) => b.efficiency - a.efficiency)
+      .slice(0, 5);
+
+    stats.top5MostEfficientTags = tagEfficiencies
+      .filter((t) => t.playCount > 0)
+      .sort((a, b) => b.efficiency - a.efficiency)
+      .slice(0, 5);
+  }
+
   function calculateDeepDive(stats, oCountEvents, year) {
     const oCountsByDay = oCountEvents.reduce((acc, curr) => {
       const day = new Date(curr.event).toISOString().substring(0, 10);
@@ -677,6 +788,78 @@
               </div>`;
   }
 
+  function renderEfficiencyStats({
+    top5MostEfficientScenes,
+    top5LeastEfficientScenes,
+    top5MostEfficientPerformers,
+    top5MostEfficientTags,
+  }) {
+    if (!top5MostEfficientScenes || top5MostEfficientScenes.length < 5) {
+      return "";
+    }
+
+    const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1em" height="1em" style="display:inline-block; vertical-align:middle; margin-left: 4px;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
+    const PLAY_SYMBOL = `<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:inline-block; vertical-align:middle; margin-left: 4px;"><path d="${PLAY_ICON_PATH}" fill="#F5F8FA"></path></svg>`;
+
+    const renderSceneItem = (scene) => {
+      const backgroundStyle = scene.image_path
+        ? `background-image: url('${scene.image_path}');`
+        : "";
+
+      return `
+        <a href="/scenes/${scene.id}" class="unwind-clickable">
+          <div class="session-item">
+            <div class="session-image" style="${backgroundStyle}"></div>
+            <div class="session-details">
+              <div class="session-title">${scene.title}</div>
+              <div class="efficiency-details">
+                <span class="efficiency-ratio unwind-text-shadow">${(scene.efficiency * 100).toFixed(0)}%</span>
+                <div class="efficiency-counts">
+                  <span class="unwind-text-shadow">${scene.o_count}${O_COUNT_SYMBOL}</span>
+                  <span class="unwind-text-shadow">${scene.play_count}${PLAY_SYMBOL}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+      `;
+    };
+
+    return `
+      <div class="col-md-12">
+        <h3 class="section-title">Bang For Your Buck</h3>
+        <h4 class="section-subtitle">Maximum Joy with Minimal Playcount</h4>
+        <div class="session-lists-container">
+            <div class="session-list-section">
+                <div class="session-list">
+                    ${top5MostEfficientScenes.map(renderSceneItem).join("")}
+                </div>
+            </div>
+            <div class="session-ellipsis-separator-horizontal">
+              <hr>
+              <div>&#8943;</div>
+              <hr>
+            </div>
+            <div class="session-list-section">
+                 <h4 class="section-subtitle"></h4>
+                <div class="session-list">
+                    ${top5LeastEfficientScenes.map(renderSceneItem).join("")}
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-6" style="text-align: center;">
+                <h4 class="section-subtitle">Top 5 Most Efficient Performers</h4>
+                <div style="position: relative; height:300px; max-width: 400px; margin: 0 auto;"><canvas id="performer-efficiency-chart"></canvas></div>
+            </div>
+            <div class="col-md-6" style="text-align: center;">
+                <h4 class="section-subtitle">Top 5 Most Efficient Tags</h4>
+                <div style="position: relative; height:300px; max-width: 400px; margin: 0 auto;"><canvas id="tag-efficiency-chart"></canvas></div>
+            </div>
+        </div>
+      </div>`;
+  }
+
   function renderDeepDive(
     {
       peakDay,
@@ -1109,6 +1292,46 @@
         "y",
       );
     }
+
+    if (
+      stats.top5MostEfficientPerformers?.length > 0 &&
+      window.stashGraphs?.drawBarChart
+    ) {
+      const labels = stats.top5MostEfficientPerformers.map((p) => p.name);
+      const data = stats.top5MostEfficientPerformers.map((p) =>
+        (p.efficiency * 100).toFixed(0),
+      );
+      window.stashGraphs.drawBarChart(
+        "performer-efficiency-chart",
+        labels,
+        data,
+        "Efficiency (%)",
+        "Top 5 Most Efficient Performers",
+        "rgba(153, 102, 255, 0.5)",
+        "rgba(153, 102, 255, 1)",
+        "y",
+      );
+    }
+
+    if (
+      stats.top5MostEfficientTags?.length > 0 &&
+      window.stashGraphs?.drawBarChart
+    ) {
+      const labels = stats.top5MostEfficientTags.map((t) => t.name);
+      const data = stats.top5MostEfficientTags.map((t) =>
+        (t.efficiency * 100).toFixed(0),
+      );
+      window.stashGraphs.drawBarChart(
+        "tag-efficiency-chart",
+        labels,
+        data,
+        "Efficiency (%)",
+        "Top 5 Most Efficient Tags",
+        "rgba(255, 206, 86, 0.5)",
+        "rgba(255, 206, 86, 1)",
+        "y",
+      );
+    }
   }
 
   // ==============
@@ -1180,22 +1403,29 @@
       calculateGeneralStats(stats, oCountEvents, allScenes, allImages, year);
       await calculateTopPerformers(stats, oCountEvents);
       await calculateTopMedia(stats, oCountEvents, playEvents);
+      await calculateEfficiencyStats(stats, oCountEvents, playEvents);
       calculateDeepDive(stats, oCountEvents, year);
       calculateSessionDurations(stats, allScenes, year);
       calculateTagStats(stats, oCountEvents);
       calculatePlayCountStats(stats, playEvents);
       calculateTimelineData(stats, oCountEvents);
 
-      contentDiv.innerHTML = `
-            <div class="row">${renderGeneralStats(stats)}</div>
-            <div class="row">${renderTopPerformers(stats)}</div>
-            ${renderTopMedia(stats) ? `<div class="row">${renderTopMedia(stats)}</div>` : ""}
-            <hr>${renderDeepDive(stats, oCountEvents) ? `<div class="row">${renderDeepDive(stats, oCountEvents)}</div><hr>` : ""}
-            ${renderSessionDurations(stats) ? `<div class="row">${renderSessionDurations(stats)}</div><hr>` : ""}
-            ${renderTagStats(stats) ? `<div class="row">${renderTagStats(stats)}</div><hr>` : ""}
-            ${renderPlayCountStats(stats) ? `<div class="row">${renderPlayCountStats(stats)}</div><hr>` : ""}
-            ${renderTimeline(stats) ? `<div class="row">${renderTimeline(stats)}</div>` : ""}
-        `;
+      const sections = [
+        renderGeneralStats(stats),
+        renderTopPerformers(stats),
+        renderTopMedia(stats),
+        renderEfficiencyStats(stats),
+        renderDeepDive(stats, oCountEvents),
+        renderSessionDurations(stats),
+        renderTagStats(stats),
+        renderPlayCountStats(stats),
+        renderTimeline(stats),
+      ]
+        .map((s) => (s ? `<div class="row">${s}</div>` : null))
+        .filter((s) => s)
+        .join("<hr>");
+
+      contentDiv.innerHTML = sections;
 
       drawCharts(stats);
     } catch (e) {
