@@ -239,10 +239,10 @@
     }
 
     ctx.chart = new Chart(ctx, {
-      type: 'radar',
+      type: "radar",
       data: {
         labels: labels,
-        datasets: datasets
+        datasets: datasets,
       },
       options: {
         responsive: true,
@@ -250,25 +250,24 @@
           title: {
             display: true,
             text: chartTitle,
-            color: "#ccc"
+            color: "#ccc",
           },
           legend: {
             labels: {
-                color: '#ccc'
-            }
-          }
+              color: "#ccc",
+            },
+          },
         },
         scales: {
           r: {
-            angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
-            grid: { color: 'rgba(255, 255, 255, 0.2)' },
-            pointLabels: { color: '#ccc' },
-            ticks: { color: '#ccc', backdropColor: 'transparent' }
-          }
-        }
-      }
+            angleLines: { color: "rgba(255, 255, 255, 0.2)" },
+            grid: { color: "rgba(255, 255, 255, 0.2)" },
+            pointLabels: { color: "#ccc" },
+            ticks: { color: "#ccc", backdropColor: "transparent" },
+          },
+        },
+      },
     });
   };
   window.stashGraphs.drawRadarChart = drawRadarChart;
-
 })();
