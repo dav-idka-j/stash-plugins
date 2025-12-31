@@ -16,3 +16,12 @@ For the **in-development** versions use
 ```
 https://raw.githubusercontent.com/dav-idka-j/stash-plugins/refs/heads/dev/index.yml
 ```
+
+## Building Plugins
+
+This project uses `make` to automate the building of plugin `.zip` files and the `index.yml` file.
+
+To build all plugins and update `index.yml`:
+```bash
+make
+```
