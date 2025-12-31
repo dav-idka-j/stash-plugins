@@ -249,16 +249,17 @@
     });
 
     // Most efficient: higher is better. Must have at least one play.
-    stats.top5MostEfficientScenes = sceneEfficiencies
+    stats.top3MostEfficientScenes = sceneEfficiencies
       .filter((s) => s.play_count > 0)
       .sort((a, b) => b.efficiency - a.efficiency)
-      .slice(0, 5);
+      .slice(0, 3);
 
     // Least efficient: lower is better. Must have at least one play.
-    stats.top5LeastEfficientScenes = sceneEfficiencies
+    stats.top3LeastEfficientScenes = sceneEfficiencies
       .filter((s) => s.play_count > 0)
       .sort((a, b) => a.efficiency - b.efficiency)
-      .slice(0, 5);
+      .slice(0, 3)
+      .reverse();
 
     // Performer & Tag Efficiency
     const performerPlays = {};
@@ -304,22 +305,6 @@
         return { id, name, playCount, oCount, efficiency };
       });
     };
-
-    const performerEfficiencies = calculateEntityEfficiency(
-      performerPlays,
-      performerOs,
-    );
-    const tagEfficiencies = calculateEntityEfficiency(tagPlays, tagOs);
-
-    stats.top5MostEfficientPerformers = performerEfficiencies
-      .filter((p) => p.playCount > 0)
-      .sort((a, b) => b.efficiency - a.efficiency)
-      .slice(0, 5);
-
-    stats.top5MostEfficientTags = tagEfficiencies
-      .filter((t) => t.playCount > 0)
-      .sort((a, b) => b.efficiency - a.efficiency)
-      .slice(0, 5);
   }
 
   function calculateDeepDive(stats, oCountEvents, year) {
@@ -789,29 +774,63 @@
   }
 
   function renderEfficiencyStats({
-    top5MostEfficientScenes,
-    top5LeastEfficientScenes,
-    top5MostEfficientPerformers,
-    top5MostEfficientTags,
+    top3MostEfficientScenes,
+    top3LeastEfficientScenes,
   }) {
-    if (!top5MostEfficientScenes || top5MostEfficientScenes.length < 5) {
+    if (!top3MostEfficientScenes || top3MostEfficientScenes.length < 3) {
       return "";
     }
 
     const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1em" height="1em" style="display:inline-block; vertical-align:middle; margin-left: 4px;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
     const PLAY_SYMBOL = `<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:inline-block; vertical-align:middle; margin-left: 4px;"><path d="${PLAY_ICON_PATH}" fill="#F5F8FA"></path></svg>`;
 
-    const renderSceneItem = (scene) => {
+    const renderTrashPileSceneItem = (scene, index) => {
       const backgroundStyle = scene.image_path
         ? `background-image: url('${scene.image_path}');`
         : "";
 
+      const rotations = [-10, 5, -15];
+      const zIndexes = [3, 2, 1]; // Overlap order
+      const xOffsets = [10, -5, -15];
+      const yOffsets = [-25, 0, 20];
+
+      let itemClass =
+        "efficiency-item unwind-box-shadow unwind-hover-lift trash-pile-item";
+      let itemStyle = `width: 200px; transform: rotate(${rotations[index]}deg) translate(${xOffsets[index]}px, ${yOffsets[index]}px); z-index: ${zIndexes[index]};`;
+
       return `
         <a href="/scenes/${scene.id}" class="unwind-clickable">
-          <div class="session-item">
-            <div class="session-image" style="${backgroundStyle}"></div>
-            <div class="session-details">
-              <div class="session-title">${scene.title}</div>
+          <div class="${itemClass}" style="${backgroundStyle} ${itemStyle}">
+            <div class="efficiency-item-overlay">
+              <div class="efficiency-item-title unwind-text-shadow">${scene.title}</div>
+              <div class="efficiency-details">
+                <span class="efficiency-ratio unwind-text-shadow">${(scene.efficiency * 100).toFixed(0)}%</span>
+                <div class="efficiency-counts">
+                  <span class="unwind-text-shadow">${scene.o_count}${O_COUNT_SYMBOL}</span>
+                  <span class="unwind-text-shadow">${scene.play_count}${PLAY_SYMBOL}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+      `;
+    };
+
+    const renderMaxEfficiencySceneItem = (scene, index) => {
+      const backgroundStyle = scene.image_path
+        ? `background-image: url('${scene.image_path}');`
+        : "";
+
+      const aspectRatios = ["9 / 16", "1 / 1", "16 / 9"]; // Aspect ratios for rank 1, 2, 3
+
+      let itemClass = "efficiency-item unwind-box-shadow unwind-hover-lift";
+      let itemStyle = `width: 150px; aspect-ratio: ${aspectRatios[index] || "1 / 1"};`;
+
+      return `
+        <a href="/scenes/${scene.id}" class="unwind-clickable">
+          <div class="${itemClass}" style="${backgroundStyle} ${itemStyle}">
+            <div class="efficiency-item-overlay">
+              <div class="efficiency-item-title unwind-text-shadow">${scene.title}</div>
               <div class="efficiency-details">
                 <span class="efficiency-ratio unwind-text-shadow">${(scene.efficiency * 100).toFixed(0)}%</span>
                 <div class="efficiency-counts">
@@ -828,34 +847,25 @@
     return `
       <div class="col-md-12">
         <h3 class="section-title">Bang For Your Buck</h3>
-        <h4 class="section-subtitle">Maximum Joy with Minimal Playcount</h4>
-        <div class="session-lists-container">
-            <div class="session-list-section">
-                <div class="session-list">
-                    ${top5MostEfficientScenes.map(renderSceneItem).join("")}
-                </div>
+        <div class="row">
+          <div class="col-md-6">
+            <h4 class="section-subtitle">Maximum Joy with Minimal Playcount</h4>
+            <div class="efficiency-list-container efficiency-max-container">
+              ${top3MostEfficientScenes
+                .map((scene, index) =>
+                  renderMaxEfficiencySceneItem(scene, index),
+                )
+                .join("")}
             </div>
-            <div class="session-ellipsis-separator-horizontal">
-              <hr>
-              <div>&#8943;</div>
-              <hr>
+          </div>
+          <div class="col-md-6">
+            <h4 class="section-subtitle">Frequently Watched Without Impact</h4>
+            <div class="efficiency-list-container trash-pile-container">
+              ${top3LeastEfficientScenes
+                .map((scene, index) => renderTrashPileSceneItem(scene, index))
+                .join("")}
             </div>
-            <div class="session-list-section">
-                 <h4 class="section-subtitle"></h4>
-                <div class="session-list">
-                    ${top5LeastEfficientScenes.map(renderSceneItem).join("")}
-                </div>
-            </div>
-        </div>
-        <div class="row" style="margin-top: 2rem;">
-            <div class="col-md-6" style="text-align: center;">
-                <h4 class="section-subtitle">Top 5 Most Efficient Performers</h4>
-                <div style="position: relative; height:300px; max-width: 400px; margin: 0 auto;"><canvas id="performer-efficiency-chart"></canvas></div>
-            </div>
-            <div class="col-md-6" style="text-align: center;">
-                <h4 class="section-subtitle">Top 5 Most Efficient Tags</h4>
-                <div style="position: relative; height:300px; max-width: 400px; margin: 0 auto;"><canvas id="tag-efficiency-chart"></canvas></div>
-            </div>
+          </div>
         </div>
       </div>`;
   }
@@ -1055,7 +1065,7 @@
 
     return `
       <div class="col-md-12">
-        <h3 class="section-title">Longest Thrills and Shortest Encounters</h3>
+        <h3 class="section-title">Longest Thrills and Shortest Highs</h3>
         <div class="session-lists-container">
             <div class="session-list-section">
                 <div class="session-list">
@@ -1101,7 +1111,7 @@
     if (!topPlayTags || topPlayTags.length < 1) return "";
     return `
         <div class="col-md-12" style="text-align: center;">
-            <h3 class="section-title">The Tags That Captivated You This Year"</h3>
+            <h3 class="section-title">The Tags That Captivated You This Year</h3>
             <div style="position: relative; height:400px; max-width: 600px; margin: 0 auto;"><canvas id="play-count-by-tag-chart"></canvas></div>
         </div>
     `;
@@ -1289,46 +1299,6 @@
         "Top Tags by Play Count",
         "rgba(54, 162, 235, 0.5)",
         "rgba(54, 162, 235, 1)",
-        "y",
-      );
-    }
-
-    if (
-      stats.top5MostEfficientPerformers?.length > 0 &&
-      window.stashGraphs?.drawBarChart
-    ) {
-      const labels = stats.top5MostEfficientPerformers.map((p) => p.name);
-      const data = stats.top5MostEfficientPerformers.map((p) =>
-        (p.efficiency * 100).toFixed(0),
-      );
-      window.stashGraphs.drawBarChart(
-        "performer-efficiency-chart",
-        labels,
-        data,
-        "Efficiency (%)",
-        "Top 5 Most Efficient Performers",
-        "rgba(153, 102, 255, 0.5)",
-        "rgba(153, 102, 255, 1)",
-        "y",
-      );
-    }
-
-    if (
-      stats.top5MostEfficientTags?.length > 0 &&
-      window.stashGraphs?.drawBarChart
-    ) {
-      const labels = stats.top5MostEfficientTags.map((t) => t.name);
-      const data = stats.top5MostEfficientTags.map((t) =>
-        (t.efficiency * 100).toFixed(0),
-      );
-      window.stashGraphs.drawBarChart(
-        "tag-efficiency-chart",
-        labels,
-        data,
-        "Efficiency (%)",
-        "Top 5 Most Efficient Tags",
-        "rgba(255, 206, 86, 0.5)",
-        "rgba(255, 206, 86, 1)",
         "y",
       );
     }

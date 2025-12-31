@@ -406,7 +406,7 @@ hr {
 .session-item {
     display: flex;
     align-items: center;
-    background-color: #2e2e2e;
+    background-color: #293b48c4;
     border-radius: 8px;
     padding: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -464,7 +464,7 @@ hr {
     top: -4px; /* Adjust to be visible above/below the line */
     height: 16px;
     width: 2px;
-    background-color: currentColor; /* Will use the color from marker-5min/15min */
+    background-color: currentColor; /* Will use the color from marker */
     transform: translateX(-50%); /* Center marker on its position */
     border-radius: 1px;
 }
@@ -494,17 +494,21 @@ hr {
     flex-direction: column;
 }
 
-/* Styles for Session Durations - Stacked Layout */
 .session-lists-container {
     display: flex;
-    flex-direction: column; /* Stack lists vertically */
-    align-items: center; /* Center content horizontally */
+    flex-direction: column;
+    align-items: center;
 }
 
 .session-list-section {
     width: 80%;
     max-width: 80%;
     text-align: left;
+}
+
+.efficiency-list-section {
+    width: 40vw;
+    max-width: 40vw;
 }
 
 .session-ellipsis-separator-horizontal {
@@ -519,13 +523,12 @@ hr {
 }
 
 .session-ellipsis-separator-horizontal hr {
-    flex-grow: 1; /* Make hr take available space */
+    flex-grow: 1;
     border: none;
     border-top: 1px solid #555;
     margin: 0 10px;
 }
 
-/* Styles for Efficiency Section */
 .efficiency-details {
     display: flex;
     justify-content: space-between;
@@ -545,4 +548,95 @@ hr {
     align-items: center;
     font-size: 1em;
     color: #ccc;
+}
+
+.efficiency-item {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    color: white;
+    font-weight: bold;
+    flex: 1 1 auto; /* Allow items to size dynamically */
+    min-height: 84px; /* Ensure some minimum height */
+    width: 100%; /* Ensure it takes full width of its flex container if needed */
+}
+
+.efficiency-item:hover {
+    transition: all 0.3s ease;
+}
+
+.efficiency-item-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+}
+
+.efficiency-item-title {
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.efficiency-list-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    min-height: 200px;
+    margin: 40px 0;
+    padding: 0 5%;
+    overflow: visible;
+}
+
+.efficiency-list-container.trash-pile-container {
+    align-items: flex-end;
+}
+
+.efficiency-max-container {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.trash-pile-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 10px;
+    transition: transform 0.2s ease-in-out;
+    aspect-ratio: 16 / 9;
+}
+
+.trash-pile-item:nth-child(1) {
+    transform: rotate(-10deg) translate(-5px, -20px);
+    z-index: 3;
+}
+.trash-pile-item:nth-child(2) {
+    transform: rotate(5deg) translate(5px, 10px);
+    z-index: 2;
+}
+.trash-pile-item:nth-child(3) {
+    transform: rotate(-15deg) translate(-10px, 15px);
+    z-index: 1;
+}
+
+.trash-pile-item:hover {
+    transform: scale(1.05) rotate(0deg) !important; /* Enlarge and straighten on hover */
+    z-index: 999 !important; /* Move to the front on hover */
 }
