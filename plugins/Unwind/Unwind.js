@@ -295,16 +295,6 @@
         });
       }
     });
-
-    const calculateEntityEfficiency = (plays, os) => {
-      return Object.keys(plays).map((id) => {
-        const name = plays[id].name;
-        const playCount = plays[id].count;
-        const oCount = os[id]?.count || 0;
-        const efficiency = playCount > 0 ? oCount / playCount : 0;
-        return { id, name, playCount, oCount, efficiency };
-      });
-    };
   }
 
   function calculateDeepDive(stats, oCountEvents, year) {
@@ -579,8 +569,10 @@
 
   const O_COUNT_PATH =
     "M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z";
+  const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
 
-  const PLAY_ICON_PATH = "M8,5.14V19.14L19,12.14L8,5.14Z";
+  const PLAY_ICON_PATH =
+    "M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z";
 
   function renderGeneralStats({
     newScenes,
@@ -589,19 +581,10 @@
     newImagesImage,
     totalOCounts,
     totalOCountsImage,
-    topOScene,
   }) {
     const SVG_SIZE = "3vw";
     const VIEWBOX_SIZES = "0 0 38 38";
-
-    const GREEN_FILL = "#28a745";
-    const RED_FILL = "#dc3545";
-
-    const TRIANGLE_UP = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="M18 6L4.5 30H 31.5L 18 6Z" fill="${GREEN_FILL}"></path></svg>`;
-    const TRIANGLE_DOWN = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="M18 30L 31.5 6H 4.5L 18 30Z" fill="${RED_FILL}"></path></svg>`;
-
-    const O_COUNT_SYMBOL_UP = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="${GREEN_FILL}"></path></svg>`;
-    const O_COUNT_SYMBOL_DOWN = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="${RED_FILL}"></path></svg>`;
+    const TRIANGLE_UP = `<svg viewBox="${VIEWBOX_SIZES}" width="${SVG_SIZE}" height="${SVG_SIZE}" style="display:inline-block; vertical-align:middle;"><path d="M18 6L4.5 30H 31.5L 18 6Z" fill="#F5F8FA"></path></svg>`;
 
     const renderStatBox = (
       title,
@@ -620,19 +603,10 @@
       let symbolHtml = "";
       let symbolColorClass = "";
 
-      // TODO: Pass this from outside instead of handling it in here
-      if (value > 0) {
-        if (statType === "scenes" || statType === "images") {
-          symbolHtml = TRIANGLE_UP;
-        } else if (statType === "ocounts") {
-          symbolHtml = O_COUNT_SYMBOL_UP;
-        }
-      } else {
-        if (statType === "scenes" || statType === "images") {
-          symbolHtml = TRIANGLE_DOWN;
-        } else if (statType === "ocounts") {
-          symbolHtml = O_COUNT_SYMBOL_DOWN;
-        }
+      if (statType === "scenes" || statType === "images") {
+        symbolHtml = TRIANGLE_UP;
+      } else if (statType === "ocounts") {
+        symbolHtml = O_COUNT_SYMBOL;
       }
 
       return `
@@ -679,7 +653,6 @@
     if (!topPerformers || topPerformers.length === 0) {
       return "";
     }
-    const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
 
     return `
       <div class="col-md-12">
@@ -722,7 +695,7 @@
       return "";
     }
     const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
-    const PLAY_SYMBOL = `<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${PLAY_ICON_PATH}" fill="#F5F8FA"></path></svg>`;
+    const PLAY_SYMBOL = `<svg viewBox="0 0 576 512" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${PLAY_ICON_PATH}" fill="#F5F8FA"></path></svg>`;
 
     return `
               <div class="col-md-12">
@@ -782,7 +755,7 @@
     }
 
     const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1em" height="1em" style="display:inline-block; vertical-align:middle; margin-left: 4px;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
-    const PLAY_SYMBOL = `<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:inline-block; vertical-align:middle; margin-left: 4px;"><path d="${PLAY_ICON_PATH}" fill="#F5F8FA"></path></svg>`;
+    const PLAY_SYMBOL = `<svg viewBox="0 0 576 512" width="1em" height="1em" style="display:inline-block; vertical-align:middle; margin-left: 4px;"><path d="${PLAY_ICON_PATH}" fill="#F5F8FA"></path></svg>`;
 
     const renderTrashPileSceneItem = (scene, index) => {
       const backgroundStyle = scene.image_path
