@@ -195,6 +195,10 @@ a.unwind-clickable:hover {
     margin-bottom: 20px;
 }
 
+.unwind-plugin-container .unwind-header h2 {
+    margin: 0 10px; /* Add horizontal margin for gaps */
+}
+
 .unwind-plugin-container {
     margin-left: 15px;
     margin-right: 15px;
@@ -209,6 +213,20 @@ a.unwind-clickable:hover {
 .unwind-plugin-container .year-selector-container label {
     margin-right: 10px;
 }
+
+/* New styles for the year selector */
+.unwind-year-selector-style {
+    background-color: #1f2a32; /* Match background color */
+    color: #f5f8fa; /* White text for visibility */
+    border: 1px solid #4a5a6a; /* Subtle border to define it */
+    padding: 5px 22px 5px 5px;
+    border-radius: 5px;
+    appearance: none; /* Remove default browser styling */
+    cursor: pointer;
+    font-size: 1.5em; /* Make it stand out a bit */
+    font-weight: bold;
+}
+
 hr {
     border-top: 1px solid #333;
 }

@@ -1378,7 +1378,7 @@
         <div class="unwind-header">
         <h2>Unwind</h2>
         <div class="year-selector-container">
-            <select id="unwind-year-selector" class="form-control"></select>
+            <select id="unwind-year-selector" class="form-control unwind-year-selector-style"></select>
         </div>
         <h2>in Review</h2>
         </div>
