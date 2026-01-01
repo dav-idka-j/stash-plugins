@@ -531,7 +531,6 @@
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: "numeric",
     });
   }
 
@@ -1142,7 +1141,9 @@
                             }');
                             background-size: cover;
                             background-position: center;
-                            align-content: center;
+                            display: flex; /* Add flex to center content */
+                            align-items: center; /* Center content vertically */
+                            justify-content: center; /* Center content horizontally */
                         ">
                             <div class="timeline-item-overlay unwind-text-shadow">
                                 <span class="timeline-item-date">${dateString}</span>

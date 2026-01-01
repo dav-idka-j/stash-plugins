@@ -48,9 +48,27 @@ a.unwind-clickable:hover {
     position: absolute;
     content: " ";
     width: 3px;
-    background-color: #333;
     left: 50%;
     margin-left: -1.5px;
+    /* Simulate dashed line with repeating linear gradient */
+    background-image: linear-gradient(to bottom, #fff 50%, transparent 50%);
+    background-size: 100% 10px; /* 10px total height, 5px solid, 5px transparent */
+    background-repeat: repeat-y;
+    /* Add a mask for fading ends */
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent,
+        black 5%,
+        black 95%,
+        transparent
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent,
+        black 5%,
+        black 95%,
+        transparent
+    );
 }
 
 .timeline > li {
@@ -75,9 +93,10 @@ a.unwind-clickable:hover {
     top: 2.5em;
     left: 50%; /* Center horizontally on the main timeline line */
     transform: translate(-50%, -50%); /* Adjust for badge's own size */
-    background-color: #7a7a7a;
+    background-color: #1f2a32; /* Use main background color */
     z-index: 100;
     border-radius: 50%;
+    border: 2px solid #fff; /* White border for badge */
 }
 
 .timeline > li .timeline-panel {
@@ -86,7 +105,7 @@ a.unwind-clickable:hover {
     ); /* Half width minus badge and padding, 60px = 20px badge-margin + 40px badge width */
     padding: 20px;
     border-radius: 5px;
-    background-color: #2e2e2e;
+    background-color: #293b48c4; /* Consistent with session-item background */
     position: relative;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
     margin-right: auto; /* Push to the left by default */
@@ -100,8 +119,8 @@ a.unwind-clickable:hover {
     right: -15px; /* Points to the timeline */
     display: inline-block;
     border-top: 15px solid transparent;
-    border-left: 15px solid #2e2e2e;
-    border-right: 0 solid #2e2e2e;
+    border-left: 15px solid #293b48c4; /* Match panel background */
+    border-right: 0 solid #293b48c4;
     border-bottom: 15px solid transparent;
     content: " ";
 }
@@ -122,6 +141,8 @@ a.unwind-clickable:hover {
     border-right-width: 15px;
     left: -15px; /* Position to point to the timeline */
     right: auto;
+    border-left: 0 solid #293b48c4;
+    border-right: 15px solid #293b48c4; /* Match panel background */
 }
 
 .timeline > li.timeline-right .timeline-title {
@@ -151,19 +172,20 @@ a.unwind-clickable:hover {
 
 .timeline-title {
     margin-top: 0;
-    color: #ccc;
+    color: #fff; /* White text for better readability */
 }
 .timeline-body > p,
 .timeline-body > ul {
     margin-bottom: 0;
-    color: #aaa;
+    color: #ddd; /* Lighter grey for body text */
 }
 
 .timeline-item-overlay {
     display: flex;
     justify-content: center;
     font-weight: bold;
-    font-size: 1.3vw;
+    font-size: 2vw;
+    color: #fff; /* White text for overlay */
 }
 
 .unwind-plugin-container .unwind-header {
