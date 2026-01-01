@@ -34,9 +34,14 @@ a.unwind-clickable:hover {
 
 .timeline {
     list-style: none;
-    padding: 20px 0 20px;
+    padding: 20px 0;
     position: relative;
+    display: flex; /* Use flexbox for the main timeline */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
 }
+
+/* Center the timeline line */
 .timeline:before {
     top: 0;
     bottom: 0;
@@ -44,31 +49,22 @@ a.unwind-clickable:hover {
     content: " ";
     width: 3px;
     background-color: #333;
-    left: 20px;
+    left: 50%;
     margin-left: -1.5px;
 }
+
 .timeline > li {
     margin-bottom: 20px;
     position: relative;
-    padding-left: 55px;
+    width: 100%; /* Make each li full width to allow internal positioning */
+    display: flex; /* Use flexbox for individual list items */
+    justify-content: center; /* Center content within the li */
+    align-items: center; /* Align items vertically in case of different panel heights */
+    min-height: 80px; /* Give some minimum height for consistency */
 }
-.timeline > li:before,
-.timeline > li:after {
-    content: " ";
-    display: table;
-}
-.timeline > li:after {
-    clear: both;
-}
-.timeline > li > .timeline-panel {
-    width: 100%;
-    padding: 20px;
-    border-radius: 5px;
-    background-color: #2e2e2e;
-    position: relative;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
-}
-.timeline > li > .timeline-badge {
+
+/* Badge styling - centered on the main timeline line, absolutely positioned within the li */
+.timeline > li .timeline-badge {
     color: #fff;
     width: 40px;
     height: 40px;
@@ -76,12 +72,83 @@ a.unwind-clickable:hover {
     font-size: 1.2em;
     text-align: center;
     position: absolute;
-    top: 16px;
-    left: 0;
+    top: 2.5em;
+    left: 50%; /* Center horizontally on the main timeline line */
+    transform: translate(-50%, -50%); /* Adjust for badge's own size */
     background-color: #7a7a7a;
     z-index: 100;
     border-radius: 50%;
 }
+
+.timeline > li .timeline-panel {
+    width: calc(
+        50% - 60px
+    ); /* Half width minus badge and padding, 60px = 20px badge-margin + 40px badge width */
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #2e2e2e;
+    position: relative;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+    margin-right: auto; /* Push to the left by default */
+    margin-left: 0;
+}
+
+/* Arrow for left-aligned panels */
+.timeline > li .timeline-panel:before {
+    position: absolute;
+    top: 26px;
+    right: -15px; /* Points to the timeline */
+    display: inline-block;
+    border-top: 15px solid transparent;
+    border-left: 15px solid #2e2e2e;
+    border-right: 0 solid #2e2e2e;
+    border-bottom: 15px solid transparent;
+    content: " ";
+}
+
+/* Right-aligned timeline items */
+.timeline > li.timeline-right {
+    flex-direction: row-reverse; /* Reverse order to place panel on right */
+}
+
+.timeline > li.timeline-right .timeline-panel {
+    margin-left: auto; /* Push to the right */
+    margin-right: 0;
+}
+
+/* Arrow for right-aligned panels */
+.timeline > li.timeline-right .timeline-panel:before {
+    border-left-width: 0;
+    border-right-width: 15px;
+    left: -15px; /* Position to point to the timeline */
+    right: auto;
+}
+
+.timeline > li.timeline-right .timeline-title {
+    text-align: left;
+}
+
+.timeline > li.timeline-left .timeline-title {
+    text-align: right;
+}
+
+/* Additional specific overrides to ensure clean layout for the panels */
+.timeline > li:nth-child(even) .timeline-panel {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.timeline > li:nth-child(odd) .timeline-panel {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+/* Remove unnecessary padding adjustments from li */
+.timeline > li {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .timeline-title {
     margin-top: 0;
     color: #ccc;
@@ -96,7 +163,7 @@ a.unwind-clickable:hover {
     display: flex;
     justify-content: center;
     font-weight: bold;
-    font-size: 3vw;
+    font-size: 1.3vw;
 }
 
 .unwind-plugin-container .unwind-header {

@@ -1163,8 +1163,12 @@
 
     stats.timeline.forEach((monthEvents, i) => {
       if (monthEvents.length > 0) {
-        timelineHtml += `
-                <li>
+        const liClass = i % 2 === 1 ? " timeline-left" : " timeline-right";
+        timelineHtml +=
+          `
+                <li class="` +
+          liClass +
+          `">
                   <div class="timeline-badge">${monthEvents.length}</div>
                   <div class="timeline-panel">
                     <div class="timeline-heading">
